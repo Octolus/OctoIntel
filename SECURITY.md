@@ -9,7 +9,7 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in Reverse-Proxy-Reveal, please follow these steps:
+If you discover a security vulnerability in OctoIntel, please follow these steps:
 
 ### 1. Do Not Open a Public Issue
 
@@ -46,7 +46,7 @@ Include in your report:
 
 ## Security Best Practices for Users
 
-When using Reverse-Proxy-Reveal:
+When using OctoIntel:
 
 1. **Legal Use Only**
    - Only scan infrastructure you own or have explicit permission to test
@@ -64,7 +64,7 @@ When using Reverse-Proxy-Reveal:
    - Consider network segmentation when scanning
 
 4. **Keep Updated**
-   - Use the latest version of Reverse-Proxy-Reveal
+   - Use the latest version of OctoIntel
    - Monitor for security updates
    - Review CHANGELOG for security-related fixes
 
@@ -148,16 +148,16 @@ Currently, we do not offer a bug bounty program. However, we greatly appreciate 
 
 ## Hall of Fame
 
-Security researchers who have helped make Reverse-Proxy-Reveal more secure:
+Security researchers who have helped make OctoIntel more secure:
 
 - *Your name could be here!*
 
 ## Contact
 
 For security-related inquiries:
-- **Organization**: OctoIntel (Creators of OctoVPN)
-- **GitHub**: [@OctoIntel](https://github.com/OctoIntel)
-- **Repository**: [Issues](https://github.com/OctoIntel/Reverse-Proxy-Reveal/issues) (for non-security bugs only)
+- **Organization**: OctoVPN
+- **GitHub**: [@Octolus](https://github.com/Octolus)
+- **Repository**: [Issues](https://github.com/Octolus/OctoIntel/issues) (for non-security bugs only)
 
 ## Legal
 

@@ -1,12 +1,12 @@
-# 🔍 Reverse-Proxy-Reveal
+# 🔍 OctoIntel
 
 [![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue)](https://github.com/OctoIntel/Reverse-Proxy-Reveal)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue)](https://github.com/Octolus/OctoIntel)
 
 **Production-ready**, ultra-fast reverse proxy backend IP scanner for discovering backend servers behind CDNs and reverse proxies like Cloudflare.
 
-*By OctoIntel - Creators of OctoVPN*
+*By Octolus from OctoVPN team*
 
 ## ⚡ Features
 
@@ -33,8 +33,8 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/OctoIntel/Reverse-Proxy-Reveal.git
-cd Reverse-Proxy-Reveal
+git clone https://github.com/Octolus/OctoIntel.git
+cd OctoIntel
 
 # Build release binary
 cargo build --release
@@ -368,7 +368,7 @@ reverse-proxy-reveal example.com \
 
 ```
 ============================================================
-🔍 Reverse-Proxy-Reveal v2.0.0
+🔍 OctoIntel v2.0.0
 ⚡ Ultra-fast reverse proxy backend scanner
 ============================================================
 
@@ -522,10 +522,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-- GitHub: [@OctoIntel](https://github.com/OctoIntel)
-- Repository: [Reverse-Proxy-Reveal](https://github.com/OctoIntel/Reverse-Proxy-Reveal)
+- GitHub: [@Octolus](https://github.com/Octolus)
+- Repository: [OctoIntel](https://github.com/Octolus/OctoIntel)
 - Website: [OctoVPN](https://octovpn.com)
 
 ---
 
-**Made with ❤️ and ⚡ Rust by OctoIntel - Creators of OctoVPN**
+**Made with ❤️ and ⚡ Rust by Octolus from OctoVPN team**

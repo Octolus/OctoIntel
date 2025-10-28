@@ -577,7 +577,7 @@ async fn main() {
         "\n{}\n{} {} v{}\n{} Ultra-fast reverse proxy backend scanner\n{}",
         "=".repeat(60).bright_cyan(),
         "🔍".to_string(),
-        "Reverse-Proxy-Reveal".bright_yellow().bold(),
+        "OctoIntel".bright_yellow().bold(),
         "2.0.0",
         "⚡".to_string(),
         "=".repeat(60).bright_cyan()

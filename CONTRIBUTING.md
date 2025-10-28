@@ -1,8 +1,8 @@
-# Contributing to Reverse-Proxy-Reveal
+# Contributing to OctoIntel
 
 First off, thanks for taking the time to contribute! 🎉
 
-The following is a set of guidelines for contributing to Reverse-Proxy-Reveal.
+The following is a set of guidelines for contributing to OctoIntel.
 
 ## Code of Conduct
 
@@ -47,8 +47,8 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/Reverse-Proxy-Reveal.git
-cd Reverse-Proxy-Reveal
+git clone https://github.com/YOUR_USERNAME/OctoIntel.git
+cd OctoIntel
 ```
 
 ### Building
@@ -109,7 +109,7 @@ Closes #123
 ## Project Structure
 
 ```
-Reverse-Proxy-Reveal/
+OctoIntel/
 ├── src/
 │   └── main.rs          # Main application code
 ├── target/              # Build output (ignored by git)
