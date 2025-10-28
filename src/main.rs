@@ -19,7 +19,7 @@ use tokio::time::timeout;
 #[command(
     name = "octointel",
     author = "Octolus from OctoVPN team",
-    version = "2.0.0",
+    version = "1.0.0",
     about = "Production-ready reverse proxy backend IP scanner",
     long_about = "Ultra-fast, production-ready IP scanner for discovering backend servers behind CDNs and reverse proxies. \
                   Supports multiple HTTP methods, content matching, and dynamic CPU scaling."
@@ -578,7 +578,7 @@ async fn main() {
 
     // Print banner
     println!(
-        "\n{}\n🔍 {} v2.0.0\n⚡ Ultra-fast reverse proxy backend scanner\n{}",
+        "\n{}\n🔍 {} v1.0.0\n⚡ Ultra-fast reverse proxy backend scanner\n{}",
         "=".repeat(60).bright_cyan(),
         "OctoIntel".bright_yellow().bold(),
         "=".repeat(60).bright_cyan()

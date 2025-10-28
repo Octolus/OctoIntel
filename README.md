@@ -368,7 +368,7 @@ octointel example.com \
 
 ```
 ============================================================
-🔍 OctoIntel v2.0.0
+🔍 OctoIntel v1.0.0
 ⚡ Ultra-fast reverse proxy backend scanner
 ============================================================
 
