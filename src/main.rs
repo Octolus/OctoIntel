@@ -86,6 +86,20 @@ struct Args {
     verbose: bool,
 }
 
+/// Configuration for creating a new Scanner instance
+pub struct ScannerConfig {
+    pub domain: String,
+    pub timeout: Duration,
+    pub workers: usize,
+    pub method: String,
+    pub status_code: u16,
+    pub content_match: Option<String>,
+    pub headers: Option<Vec<String>>,
+    pub post_body: Option<String>,
+    pub port: u16,
+    pub verbose: bool,
+}
+
 /// Scanner configuration and state management
 ///
 /// Holds all configuration needed for scanning IP ranges, including:
@@ -111,49 +125,29 @@ impl Scanner {
     /// Create a new Scanner instance with all configuration
     ///
     /// # Arguments
-    /// * `domain` - Target domain to scan for
-    /// * `timeout` - Connection timeout duration
-    /// * `workers` - Number of concurrent workers
-    /// * `method` - HTTP method (HEAD, GET, or POST)
-    /// * `status_code` - Expected HTTP status code to match
-    /// * `content_match` - Optional regex pattern to search in response
-    /// * `headers` - Optional custom HTTP headers
-    /// * `post_body` - Optional POST request body
-    /// * `port` - Target port number
-    /// * `verbose` - Enable verbose debug output
+    /// * `config` - Scanner configuration struct
     ///
     /// # Returns
     /// * `Ok(Scanner)` - Configured scanner ready to use
     /// * `Err` - If configuration is invalid (bad regex, invalid method, etc.)
-    fn new(
-        domain: String,
-        timeout: Duration,
-        workers: usize,
-        method: String,
-        status_code: u16,
-        content_match: Option<String>,
-        headers: Option<Vec<String>>,
-        post_body: Option<String>,
-        port: u16,
-        verbose: bool,
-    ) -> Result<Self, Box<dyn std::error::Error>> {
+    fn new(config: ScannerConfig) -> Result<Self, Box<dyn std::error::Error>> {
         // Build HTTP request with specified method
-        let mut request = match method.as_str() {
-            "HEAD" => format!("HEAD / HTTP/1.1\r\nHost: {}\r\n", domain),
-            "GET" => format!("GET / HTTP/1.1\r\nHost: {}\r\n", domain),
+        let mut request = match config.method.as_str() {
+            "HEAD" => format!("HEAD / HTTP/1.1\r\nHost: {}\r\n", config.domain),
+            "GET" => format!("GET / HTTP/1.1\r\nHost: {}\r\n", config.domain),
             "POST" => {
-                let body = post_body.as_deref().unwrap_or("");
+                let body = config.post_body.as_deref().unwrap_or("");
                 format!(
                     "POST / HTTP/1.1\r\nHost: {}\r\nContent-Length: {}\r\n",
-                    domain,
+                    config.domain,
                     body.len()
                 )
             }
-            _ => return Err(format!("Unsupported HTTP method: {}", method).into()),
+            _ => return Err(format!("Unsupported HTTP method: {}", config.method).into()),
         };
 
         // Add custom headers if provided
-        if let Some(ref custom_headers) = headers {
+        if let Some(ref custom_headers) = config.headers {
             for header in custom_headers {
                 if !header.contains(':') {
                     return Err(format!(
@@ -173,14 +167,14 @@ impl Scanner {
 
         // Complete headers and add body for POST
         request.push_str("\r\n");
-        if method == "POST" {
-            if let Some(body) = post_body {
+        if config.method == "POST" {
+            if let Some(body) = config.post_body {
                 request.push_str(&body);
             }
         }
 
         // Compile regex if content matching is enabled
-        let content_regex = if let Some(pattern) = content_match {
+        let content_regex = if let Some(pattern) = config.content_match {
             match Regex::new(&pattern) {
                 Ok(re) => Some(re),
                 Err(e) => return Err(format!("Invalid regex pattern: {}", e).into()),
@@ -190,17 +184,17 @@ impl Scanner {
         };
 
         Ok(Self {
-            domain: Arc::new(domain),
-            timeout,
-            workers,
+            domain: Arc::new(config.domain),
+            timeout: config.timeout,
+            workers: config.workers,
             stop_flag: Arc::new(AtomicBool::new(false)),
             found_count: Arc::new(AtomicU64::new(0)),
             request_bytes: Arc::new(request.into_bytes()),
-            method: Arc::new(method),
-            status_code,
+            method: Arc::new(config.method),
+            status_code: config.status_code,
             content_regex: Arc::new(content_regex),
-            port,
-            verbose,
+            port: config.port,
+            verbose: config.verbose,
         })
     }
 
@@ -430,7 +424,7 @@ impl Scanner {
             .buffer_unordered(self.workers);
 
         // Process results
-        while let Some(_) = stream.next().await {
+        while (stream.next().await).is_some() {
             if self.stop_flag.load(Ordering::Relaxed) {
                 break;
             }
@@ -470,7 +464,7 @@ fn detect_optimal_settings() -> (usize, u64, usize) {
     let total_memory_gb = sys.total_memory() / (1024 * 1024 * 1024);
 
     // Calculate optimal worker threads (use all cores but cap at 16)
-    let worker_threads = cpu_count.min(16).max(4);
+    let worker_threads = cpu_count.clamp(4, 16);
 
     // Calculate optimal concurrent workers based on memory
     // Each connection uses ~50KB, so we can estimate max safe connections
@@ -584,12 +578,9 @@ async fn main() {
 
     // Print banner
     println!(
-        "\n{}\n{} {} v{}\n{} Ultra-fast reverse proxy backend scanner\n{}",
+        "\n{}\n🔍 {} v2.0.0\n⚡ Ultra-fast reverse proxy backend scanner\n{}",
         "=".repeat(60).bright_cyan(),
-        "🔍".to_string(),
         "OctoIntel".bright_yellow().bold(),
-        "2.0.0",
-        "⚡".to_string(),
         "=".repeat(60).bright_cyan()
     );
 
@@ -606,18 +597,18 @@ async fn main() {
     let timeout = args.timeout.unwrap_or(optimal_timeout);
 
     // Create scanner with all the new options
-    let scanner = match Scanner::new(
-        args.domain.clone(),
-        Duration::from_millis(timeout),
+    let scanner = match Scanner::new(ScannerConfig {
+        domain: args.domain.clone(),
+        timeout: Duration::from_millis(timeout),
         workers,
-        args.method.clone(),
-        args.status_code,
-        args.content_match.clone(),
-        args.headers.clone(),
-        args.post_body.clone(),
-        args.port,
-        args.verbose,
-    ) {
+        method: args.method.clone(),
+        status_code: args.status_code,
+        content_match: args.content_match.clone(),
+        headers: args.headers.clone(),
+        post_body: args.post_body.clone(),
+        port: args.port,
+        verbose: args.verbose,
+    }) {
         Ok(s) => s,
         Err(e) => {
             eprintln!("{} Failed to create scanner: {}", "✗".red(), e);
@@ -679,9 +670,8 @@ async fn main() {
 
     // Print scan configuration
     println!(
-        "\n{}\n{} Scan Configuration:\n{}",
+        "\n{}\n⚙ Scan Configuration:\n{}",
         "=".repeat(60).bright_cyan(),
-        "⚙".to_string(),
         "=".repeat(60).bright_cyan()
     );
     println!(
