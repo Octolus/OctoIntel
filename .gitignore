@@ -1,0 +1,46 @@
+# Rust Build Output
+/target/
+**/*.rs.bk
+*.pdb
+
+# Cargo.lock is COMMITTED for binary crates (this project)
+# Only ignore it for library crates
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+
+# OS Files
+Thumbs.db
+.DS_Store
+
+# Build artifacts (only in target/ directory)
+# Note: We don't ignore *.exe globally since we want
+# to track the actual binary name if needed
+
+# Test and temporary files
+test_results/
+*.log
+*.tmp
+
+# Local configuration
+config.local.*
+.env
+.env.local
+
+# Generated files
+output/
+results/
+scans/
+
+# Documentation build
+/book/
+
+# Benchmarking
+/bench/
+
