@@ -10,7 +10,7 @@ keywords = ["scanner", "ip", "reverse-proxy", "cdn", "security"]
 categories = ["command-line-utilities", "network-programming"]
 
 [[bin]]
-name = "reverse-proxy-reveal"
+name = "octointel"
 path = "src/main.rs"
 
 [dependencies]

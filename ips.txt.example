@@ -5,7 +5,7 @@
 # Empty lines are ignored
 #
 # Usage:
-#   reverse-proxy-reveal example.com --ip-file ips.txt
+#   octointel example.com --ip-file ips.txt
 #
 # This file includes common IP ranges for major cloud providers
 
@@ -234,5 +234,5 @@
 # - Priority ranges at the top will be scanned first
 #
 # Example usage:
-#   reverse-proxy-reveal example.com --ip-file ips.txt
-#   reverse-proxy-reveal example.com --ip-file ips.txt --method GET --content-match "Your Site"
+#   octointel example.com --ip-file ips.txt
+#   octointel example.com --ip-file ips.txt --method GET --content-match "Your Site"

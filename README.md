@@ -39,8 +39,8 @@ cd OctoIntel
 # Build release binary
 cargo build --release
 
-# Binary will be at: target/release/reverse-proxy-reveal.exe (Windows)
-#                 or: target/release/reverse-proxy-reveal (Linux/macOS)
+# Binary will be at: target/release/octointel.exe (Windows)
+#                 or: target/release/octointel (Linux/macOS)
 ```
 
 ## 🎯 Real-World Use Case: Finding Backend Behind Cloudflare
@@ -60,7 +60,7 @@ Use HEAD when you know the backend returns a specific status code (like 202 Acce
 
 ```bash
 # Quick scan looking for 202 status
-reverse-proxy-reveal example.com \
+octointel example.com \
   --ranges 35.207.0.0/16 \
   --method HEAD \
   --status-code 202
@@ -78,7 +78,7 @@ Use GET when you need to verify content matches your site:
 
 ```bash
 # Find backend by checking for your site's title
-reverse-proxy-reveal example.com \
+octointel example.com \
   --method GET \
   --content-match "<title>My Site Title</title>" \
   --ranges 35.207.0.0/16
@@ -96,7 +96,7 @@ Search for flexible patterns in the HTML:
 
 ```bash
 # Match title with regex (case-insensitive, flexible)
-reverse-proxy-reveal example.com \
+octointel example.com \
   --method GET \
   --content-match "<title>.*example.*</title>" \
   --ranges 35.207.0.0/16
@@ -146,7 +146,7 @@ Create `ips.txt` with CIDR ranges to scan:
 Then scan using the file:
 
 ```bash
-reverse-proxy-reveal example.com --ip-file ips.txt
+octointel example.com --ip-file ips.txt
 ```
 
 See `ips.txt.example` for comprehensive cloud provider ranges.
@@ -157,14 +157,14 @@ See `ips.txt.example` for comprehensive cloud provider ranges.
 
 ```bash
 # Uses built-in Google Cloud ranges
-reverse-proxy-reveal example.com
+octointel example.com
 ```
 
 ### Example 2: Custom IP Ranges (Cloudflare Scenario)
 
 ```bash
 # You know your backend is on Google Cloud US-West
-reverse-proxy-reveal example.com \
+octointel example.com \
   --ranges 35.207.0.0/16,35.208.0.0/16,35.209.0.0/16
 ```
 
@@ -172,7 +172,7 @@ reverse-proxy-reveal example.com \
 
 ```bash
 # Your site has unique title, use GET to verify
-reverse-proxy-reveal example.com \
+octointel example.com \
   --method GET \
   --content-match "<title>Welcome to Example Corp</title>" \
   --ip-file ips.txt
@@ -182,7 +182,7 @@ reverse-proxy-reveal example.com \
 
 ```bash
 # Backend returns custom header
-reverse-proxy-reveal example.com \
+octointel example.com \
   --method HEAD \
   --content-match "X-Custom-Backend: production" \
   --ranges 10.0.0.0/16
@@ -192,7 +192,7 @@ reverse-proxy-reveal example.com \
 
 ```bash
 # Look for specific nginx version
-reverse-proxy-reveal example.com \
+octointel example.com \
   --method GET \
   --content-match "Server:.*nginx/1\\.18" \
   --ranges 35.207.0.0/20
@@ -202,7 +202,7 @@ reverse-proxy-reveal example.com \
 
 ```bash
 # Backend always returns 202 for your domain
-reverse-proxy-reveal example.com \
+octointel example.com \
   --method HEAD \
   --status-code 202 \
   --workers 10000 \
@@ -214,7 +214,7 @@ reverse-proxy-reveal example.com \
 
 ### Use HEAD When:
 ```bash
-reverse-proxy-reveal example.com --method HEAD --status-code 202
+octointel example.com --method HEAD --status-code 202
 ```
 
 ✅ **Advantages:**
@@ -230,7 +230,7 @@ reverse-proxy-reveal example.com --method HEAD --status-code 202
 
 ### Use GET When:
 ```bash
-reverse-proxy-reveal example.com --method GET --content-match "<title>Your Site</title>"
+octointel example.com --method GET --content-match "<title>Your Site</title>"
 ```
 
 ✅ **Advantages:**
@@ -282,23 +282,23 @@ reverse-proxy-reveal example.com --method GET --content-match "<title>Your Site<
 
 ```bash
 # Test with /24 first (256 IPs)
-reverse-proxy-reveal example.com --ranges 35.207.76.0/24
+octointel example.com --ranges 35.207.76.0/24
 
 # Then expand to /20 (4096 IPs)
-reverse-proxy-reveal example.com --ranges 35.207.0.0/20
+octointel example.com --ranges 35.207.0.0/20
 
 # Finally scan /16 if needed (65536 IPs)
-reverse-proxy-reveal example.com --ranges 35.207.0.0/16
+octointel example.com --ranges 35.207.0.0/16
 ```
 
 ### 2. Use Content Matching for Accuracy
 
 ```bash
 # Instead of just status code...
-reverse-proxy-reveal example.com --status-code 200
+octointel example.com --status-code 200
 
 # Add content verification to reduce false positives
-reverse-proxy-reveal example.com \
+octointel example.com \
   --method GET \
   --status-code 200 \
   --content-match "<title>Your Unique Title</title>"
@@ -308,7 +308,7 @@ reverse-proxy-reveal example.com \
 
 ```bash
 # Find backend with specific characteristics
-reverse-proxy-reveal example.com \
+octointel example.com \
   --method GET \
   --status-code 200 \
   --content-match "nginx.*Your-App-Name" \
@@ -321,14 +321,14 @@ If you know your hosting provider:
 
 ```bash
 # Google Cloud only
-reverse-proxy-reveal example.com --ip-file google-cloud.txt
+octointel example.com --ip-file google-cloud.txt
 
 # AWS only  
-reverse-proxy-reveal example.com --ip-file aws.txt
+octointel example.com --ip-file aws.txt
 
 # Mix of providers
 cat google-cloud.txt aws.txt digitalocean.txt > mixed.txt
-reverse-proxy-reveal example.com --ip-file mixed.txt
+octointel example.com --ip-file mixed.txt
 ```
 
 ## 🔍 Debugging Tips
@@ -337,7 +337,7 @@ reverse-proxy-reveal example.com --ip-file mixed.txt
 
 ```bash
 # See every connection attempt
-reverse-proxy-reveal example.com --ranges 35.207.76.0/24 --verbose
+octointel example.com --ranges 35.207.76.0/24 --verbose
 ```
 
 Output shows:
@@ -350,7 +350,7 @@ Output shows:
 
 ```bash
 # Verify your pattern works on known IP
-reverse-proxy-reveal example.com --single-ip 35.207.76.249 --verbose
+octointel example.com --single-ip 35.207.76.249 --verbose
 ```
 
 ### Check Your Regex Pattern
@@ -358,7 +358,7 @@ reverse-proxy-reveal example.com --single-ip 35.207.76.249 --verbose
 Test regex before scanning large ranges:
 ```bash
 # Test on small range first
-reverse-proxy-reveal example.com \
+octointel example.com \
   --ranges 35.207.76.0/28 \
   --content-match "your-pattern" \
   --verbose
@@ -423,7 +423,7 @@ reverse-proxy-reveal example.com \
 3. **Remove content matching temporarily**
    ```bash
    # Test without pattern first
-   reverse-proxy-reveal example.com --ranges 35.207.76.0/24
+   octointel example.com --ranges 35.207.76.0/24
    ```
 
 4. **Use verbose mode**

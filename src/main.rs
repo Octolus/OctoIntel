@@ -10,14 +10,14 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
+use sysinfo::System;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 use tokio::time::timeout;
-use sysinfo::System;
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "reverse-proxy-reveal",
+    name = "octointel",
     author = "Octolus from OctoVPN team",
     version = "2.0.0",
     about = "Production-ready reverse proxy backend IP scanner",
@@ -87,7 +87,7 @@ struct Args {
 }
 
 /// Scanner configuration and state management
-/// 
+///
 /// Holds all configuration needed for scanning IP ranges, including:
 /// - Target domain and connection parameters
 /// - HTTP request configuration (method, headers, body)
@@ -109,7 +109,7 @@ struct Scanner {
 
 impl Scanner {
     /// Create a new Scanner instance with all configuration
-    /// 
+    ///
     /// # Arguments
     /// * `domain` - Target domain to scan for
     /// * `timeout` - Connection timeout duration
@@ -121,7 +121,7 @@ impl Scanner {
     /// * `post_body` - Optional POST request body
     /// * `port` - Target port number
     /// * `verbose` - Enable verbose debug output
-    /// 
+    ///
     /// # Returns
     /// * `Ok(Scanner)` - Configured scanner ready to use
     /// * `Err` - If configuration is invalid (bad regex, invalid method, etc.)
@@ -156,7 +156,11 @@ impl Scanner {
         if let Some(ref custom_headers) = headers {
             for header in custom_headers {
                 if !header.contains(':') {
-                    return Err(format!("Invalid header format: '{}'. Expected 'Header: Value'", header).into());
+                    return Err(format!(
+                        "Invalid header format: '{}'. Expected 'Header: Value'",
+                        header
+                    )
+                    .into());
                 }
                 request.push_str(header);
                 request.push_str("\r\n");
@@ -165,8 +169,8 @@ impl Scanner {
 
         // Add standard headers
         request.push_str("Connection: close\r\n");
-        request.push_str("User-Agent: reverse-proxy-reveal/2.0\r\n");
-        
+        request.push_str("User-Agent: octointel/2.0\r\n");
+
         // Complete headers and add body for POST
         request.push_str("\r\n");
         if method == "POST" {
@@ -201,14 +205,14 @@ impl Scanner {
     }
 
     /// Scan a single IP address for the target domain
-    /// 
+    ///
     /// # Arguments
     /// * `ip` - IPv4 address to scan
-    /// 
+    ///
     /// # Returns
     /// * `Some((ip, info))` - If match found, returns IP and match details
     /// * `None` - If no match or connection failed
-    /// 
+    ///
     /// # Behavior
     /// - Connects to ip:port via TCP
     /// - Sends configured HTTP request (HEAD/GET/POST)
@@ -243,13 +247,13 @@ impl Scanner {
 
                 // Read response - use larger buffer for content matching
                 let buffer_size = if self.content_regex.is_some() || self.method.as_str() == "GET" {
-                    8192  // 8KB for full response content
+                    8192 // 8KB for full response content
                 } else {
-                    512   // Small buffer for status line only
+                    512 // Small buffer for status line only
                 };
 
                 let mut buffer = vec![0u8; buffer_size];
-                
+
                 match timeout(self.timeout, stream.read(&mut buffer)).await {
                     Ok(Ok(bytes_read)) => {
                         if bytes_read == 0 {
@@ -258,7 +262,7 @@ impl Scanner {
 
                         // Convert to string for parsing
                         let response = String::from_utf8_lossy(&buffer[..bytes_read]);
-                        
+
                         // Parse HTTP status code
                         let status_match = format!(" {} ", self.status_code);
                         let has_status = response.contains(&status_match);
@@ -267,7 +271,7 @@ impl Scanner {
                         let content_matched = if let Some(ref regex) = *self.content_regex {
                             regex.is_match(&response)
                         } else {
-                            true  // No content filter, so consider it matched
+                            true // No content filter, so consider it matched
                         };
 
                         if has_status && content_matched {
@@ -316,14 +320,14 @@ impl Scanner {
     }
 
     /// Scan an entire IP range (CIDR notation)
-    /// 
+    ///
     /// # Arguments
     /// * `range` - CIDR notation (e.g., "35.207.0.0/16")
     /// * `stop_on_find` - Whether to stop after first match
-    /// 
+    ///
     /// # Returns
     /// * Vector of (ip, info) tuples for all matches found
-    /// 
+    ///
     /// # Behavior
     /// - Parses CIDR range into individual IPs
     /// - Creates concurrent scan tasks (up to `workers` parallel)
@@ -402,8 +406,11 @@ impl Scanner {
                             found_ip.bright_yellow().bold(),
                             info.bright_white()
                         );
-                        
-                        found_ips.lock().await.push((found_ip.clone(), info.clone()));
+
+                        found_ips
+                            .lock()
+                            .await
+                            .push((found_ip.clone(), info.clone()));
                         found_count_inner.fetch_add(1, Ordering::Relaxed);
 
                         if stop_on_find {
@@ -437,10 +444,10 @@ impl Scanner {
 }
 
 /// Detect optimal system settings for maximum performance
-/// 
+///
 /// # Returns
 /// * (workers, timeout_ms, worker_threads) tuple
-/// 
+///
 /// # Auto-Detection Logic
 /// - CPU cores: Used for Tokio worker threads
 /// - RAM: Determines max concurrent connections
@@ -458,13 +465,13 @@ fn detect_optimal_settings() -> (usize, u64, usize) {
 
     // Detect CPU cores
     let cpu_count = sys.cpus().len();
-    
+
     // Detect available memory (in GB)
     let total_memory_gb = sys.total_memory() / (1024 * 1024 * 1024);
-    
+
     // Calculate optimal worker threads (use all cores but cap at 16)
     let worker_threads = cpu_count.min(16).max(4);
-    
+
     // Calculate optimal concurrent workers based on memory
     // Each connection uses ~50KB, so we can estimate max safe connections
     let workers = if total_memory_gb >= 16 {
@@ -480,7 +487,7 @@ fn detect_optimal_settings() -> (usize, u64, usize) {
         // Very low: <4GB RAM
         1000
     };
-    
+
     // Calculate optimal timeout based on expected performance
     let timeout = if total_memory_gb >= 16 && cpu_count >= 8 {
         // High-end system: aggressive timeout
@@ -492,35 +499,38 @@ fn detect_optimal_settings() -> (usize, u64, usize) {
         // Low-end: conservative
         1000
     };
-    
-    println!(
-        "{} Auto-detected system capabilities:",
-        "ℹ".bright_blue()
-    );
+
+    println!("{} Auto-detected system capabilities:", "ℹ".bright_blue());
     println!("  {} CPU Cores: {}", "→".bright_cyan(), cpu_count);
     println!("  {} RAM: {} GB", "→".bright_cyan(), total_memory_gb);
-    println!("  {} Tokio Worker Threads: {}", "→".bright_cyan(), worker_threads);
+    println!(
+        "  {} Tokio Worker Threads: {}",
+        "→".bright_cyan(),
+        worker_threads
+    );
     println!("  {} Concurrent Workers: {}", "→".bright_cyan(), workers);
     println!("  {} Connection Timeout: {}ms", "→".bright_cyan(), timeout);
     println!();
-    
+
     (workers, timeout, worker_threads)
 }
 
 /// Load IP ranges from a text file (one CIDR notation per line)
-/// 
+///
 /// # Arguments
 /// * `file_path` - Path to the file containing IP ranges
-/// 
+///
 /// # Returns
 /// * `Ok(Vec<String>)` - Vector of valid CIDR ranges
 /// * `Err` - If file cannot be read or contains no valid ranges
-/// 
+///
 /// # Format
 /// - One CIDR range per line (e.g., "35.207.0.0/16")
 /// - Lines starting with '#' or '//' are treated as comments
 /// - Empty lines are ignored
-fn load_ip_ranges_from_file(file_path: &PathBuf) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+fn load_ip_ranges_from_file(
+    file_path: &PathBuf,
+) -> Result<Vec<String>, Box<dyn std::error::Error>> {
     println!(
         "{} Loading IP ranges from: {}",
         "ℹ".bright_blue(),
@@ -534,7 +544,7 @@ fn load_ip_ranges_from_file(file_path: &PathBuf) -> Result<Vec<String>, Box<dyn 
     for line in content.lines() {
         line_num += 1;
         let trimmed = line.trim();
-        
+
         // Skip empty lines and comments
         if trimmed.is_empty() || trimmed.starts_with('#') || trimmed.starts_with("//") {
             continue;
@@ -585,19 +595,16 @@ async fn main() {
 
     // Validate arguments
     if args.method == "POST" && args.post_body.is_none() && args.verbose {
-        println!(
-            "{} Using POST method without a body",
-            "⚠".bright_yellow()
-        );
+        println!("{} Using POST method without a body", "⚠".bright_yellow());
     }
 
     // Auto-detect optimal settings if not provided
     let (optimal_workers, optimal_timeout, _worker_threads) = detect_optimal_settings();
-    
+
     // Use provided values or auto-detected ones
     let workers = args.workers.unwrap_or(optimal_workers);
     let timeout = args.timeout.unwrap_or(optimal_timeout);
-    
+
     // Create scanner with all the new options
     let scanner = match Scanner::new(
         args.domain.clone(),
@@ -620,8 +627,13 @@ async fn main() {
 
     // Handle single IP scan
     if let Some(single_ip) = args.single_ip {
-        println!("{} Scanning single IP: {}:{}", "➤".bright_green(), single_ip, args.port);
-        
+        println!(
+            "{} Scanning single IP: {}:{}",
+            "➤".bright_green(),
+            single_ip,
+            args.port
+        );
+
         match single_ip.parse::<Ipv4Addr>() {
             Ok(ip) => {
                 if let Some((found, info)) = scanner.scan_ip(ip).await {
@@ -660,7 +672,7 @@ async fn main() {
         eprintln!("  2. CLI args:   --ranges 35.207.0.0/16,10.0.0.0/24");
         eprintln!("  3. Single IP:  --single-ip 35.207.76.249");
         eprintln!();
-        eprintln!("Example: reverse-proxy-reveal example.com --ip-file ips.txt");
+        eprintln!("Example: octointel example.com --ip-file ips.txt");
         eprintln!("See ips.txt.example for sample IP ranges");
         std::process::exit(1);
     };
@@ -672,23 +684,47 @@ async fn main() {
         "⚙".to_string(),
         "=".repeat(60).bright_cyan()
     );
-    println!("  {} Target domain: {}", "→".bright_cyan(), args.domain.bright_yellow());
-    println!("  {} HTTP method: {}", "→".bright_cyan(), args.method.bright_yellow());
-    println!("  {} Port: {}", "→".bright_cyan(), args.port.to_string().bright_yellow());
-    println!("  {} Target status: {}", "→".bright_cyan(), args.status_code.to_string().bright_yellow());
-    
+    println!(
+        "  {} Target domain: {}",
+        "→".bright_cyan(),
+        args.domain.bright_yellow()
+    );
+    println!(
+        "  {} HTTP method: {}",
+        "→".bright_cyan(),
+        args.method.bright_yellow()
+    );
+    println!(
+        "  {} Port: {}",
+        "→".bright_cyan(),
+        args.port.to_string().bright_yellow()
+    );
+    println!(
+        "  {} Target status: {}",
+        "→".bright_cyan(),
+        args.status_code.to_string().bright_yellow()
+    );
+
     if let Some(ref content) = args.content_match {
-        println!("  {} Content match: {}", "→".bright_cyan(), content.bright_yellow());
+        println!(
+            "  {} Content match: {}",
+            "→".bright_cyan(),
+            content.bright_yellow()
+        );
     }
-    
+
     if let Some(ref headers) = args.headers {
-        println!("  {} Custom headers: {} header(s)", "→".bright_cyan(), headers.len());
+        println!(
+            "  {} Custom headers: {} header(s)",
+            "→".bright_cyan(),
+            headers.len()
+        );
     }
-    
+
     println!("  {} IP ranges: {}", "→".bright_cyan(), ip_ranges.len());
     println!("  {} Concurrent workers: {}", "→".bright_cyan(), workers);
     println!("  {} Timeout: {}ms", "→".bright_cyan(), timeout);
-    
+
     let start_time = Instant::now();
     let mut all_found_ips = Vec::new();
 
